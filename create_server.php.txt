@@ -1,0 +1,31 @@
+<?php
+session_start();
+
+if (!isset($_SESSION['user'])) {
+    header("Location: index.php");
+    exit();
+}
+
+$db = new PDO('sqlite:data.sqlite');
+$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+$username = $_SESSION['user'];
+$stmt = $db->prepare("SELECT * FROM users WHERE username = ?");
+$stmt->execute([$username]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$user) {
+    header("Location: index.php");
+    exit();
+}
+
+// Sumar 100 créditos como ejemplo al crear servidor
+$newCredits = $user['credits'] + 100;
+
+$stmt = $db->prepare("UPDATE users SET credits = ? WHERE username = ?");
+$stmt->execute([$newCredits, $username]);
+
+$_SESSION['message'] = "Servidor creado! Has ganado 100 créditos.";
+
+header("Location: index.php");
+exit();
